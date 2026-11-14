@@ -1,0 +1,27 @@
+{
+  "name": "roamly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-oriented AI travel platform monorepo",
+  "packageManager": "pnpm@12.18.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "test:api": "cd apps/api && python -m pytest",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "generate:client": "node scripts/generate-client.mjs"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.0",
+    "turbo": "^2.4.4",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

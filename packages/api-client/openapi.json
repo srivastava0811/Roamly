@@ -1,0 +1,782 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Roamly API",
+    "description": "Backend API for Roamly AI Travel Operating System",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Get Health",
+        "description": "Service health check endpoint.\nPer architectural requirement: Health must never require a configured production database to run.",
+        "operationId": "get_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trips": {
+      "get": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "List Trips",
+        "operationId": "list_trips_api_v1_trips_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_List_TripResponse__"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "Create Trip",
+        "operationId": "create_trip_api_v1_trips_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_TripResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trips/{trip_id}": {
+      "get": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "Get Trip",
+        "operationId": "get_trip_api_v1_trips__trip_id__get",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_TripResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trips/{trip_id}/budget": {
+      "get": {
+        "tags": [
+          "Trips"
+        ],
+        "summary": "Get Trip Budget",
+        "operationId": "get_trip_budget_api_v1_trips__trip_id__budget_get",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_BudgetBreakdownSchema_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents": {
+      "get": {
+        "tags": [
+          "Agents"
+        ],
+        "summary": "List Available Agents",
+        "operationId": "list_available_agents_api_v1_agents_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_List_Dict_str__Any___"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/runs/{run_id}/stream": {
+      "get": {
+        "tags": [
+          "Agents"
+        ],
+        "summary": "Stream Agent Execution",
+        "description": "Server-Sent Events (SSE) endpoint for streaming agent run progress.",
+        "operationId": "stream_agent_execution_api_v1_agents_runs__run_id__stream_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponseEnvelope_BudgetBreakdownSchema_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BudgetBreakdownSchema"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[BudgetBreakdownSchema]"
+      },
+      "ApiResponseEnvelope_List_Dict_str__Any___": {
+        "properties": {
+          "data": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[List[Dict[str, Any]]]"
+      },
+      "ApiResponseEnvelope_List_TripResponse__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TripResponse"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[List[TripResponse]]"
+      },
+      "ApiResponseEnvelope_TripResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TripResponse"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[TripResponse]"
+      },
+      "BudgetBreakdownSchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "trip_id": {
+            "type": "string",
+            "title": "Trip Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "total_budget": {
+            "$ref": "#/components/schemas/MoneySchema"
+          },
+          "total_estimated_cost": {
+            "$ref": "#/components/schemas/MoneySchema"
+          },
+          "total_actual_cost": {
+            "$ref": "#/components/schemas/MoneySchema"
+          },
+          "remaining_estimated_budget": {
+            "$ref": "#/components/schemas/MoneySchema"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryBudgetSchema"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "deterministic_checksum": {
+            "type": "string",
+            "title": "Deterministic Checksum"
+          },
+          "last_recalculated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Recalculated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "trip_id",
+          "currency",
+          "total_budget",
+          "total_estimated_cost",
+          "total_actual_cost",
+          "remaining_estimated_budget",
+          "categories",
+          "deterministic_checksum",
+          "last_recalculated_at"
+        ],
+        "title": "BudgetBreakdownSchema"
+      },
+      "CategoryBudgetSchema": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "allocated": {
+            "$ref": "#/components/schemas/MoneySchema"
+          },
+          "estimated_spent": {
+            "$ref": "#/components/schemas/MoneySchema"
+          },
+          "actual_spent": {
+            "$ref": "#/components/schemas/MoneySchema"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "allocated",
+          "estimated_spent",
+          "actual_spent",
+          "status"
+        ],
+        "title": "CategoryBudgetSchema"
+      },
+      "CoordinatesSchema": {
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "title": "CoordinatesSchema"
+      },
+      "DestinationSchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "coordinates": {
+            "$ref": "#/components/schemas/CoordinatesSchema"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "UTC"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "country",
+          "coordinates"
+        ],
+        "title": "DestinationSchema"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "services": {
+            "$ref": "#/components/schemas/ServiceStatusSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "environment",
+          "timestamp",
+          "services"
+        ],
+        "title": "HealthResponse"
+      },
+      "MetaSchema": {
+        "properties": {
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "0.1.0"
+          }
+        },
+        "type": "object",
+        "title": "MetaSchema"
+      },
+      "MoneySchema": {
+        "properties": {
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "default": "USD"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount"
+        ],
+        "title": "MoneySchema"
+      },
+      "ServiceStatusSchema": {
+        "properties": {
+          "api": {
+            "type": "string",
+            "title": "Api"
+          },
+          "database": {
+            "type": "string",
+            "title": "Database"
+          }
+        },
+        "type": "object",
+        "required": [
+          "api",
+          "database"
+        ],
+        "title": "ServiceStatusSchema"
+      },
+      "TripCreateRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "destination_city": {
+            "type": "string",
+            "title": "Destination City"
+          },
+          "destination_country": {
+            "type": "string",
+            "title": "Destination Country"
+          },
+          "party_size": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Party Size",
+            "default": 1
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "default": "USD"
+          },
+          "total_budget": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Budget"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "start_date",
+          "end_date",
+          "destination_city",
+          "destination_country"
+        ],
+        "title": "TripCreateRequest"
+      },
+      "TripResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "creator_id": {
+            "type": "string",
+            "title": "Creator Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/DestinationSchema"
+          },
+          "party_size": {
+            "type": "integer",
+            "title": "Party Size"
+          },
+          "total_budget": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MoneySchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_revision_id": {
+            "type": "string",
+            "title": "Current Revision Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "creator_id",
+          "status",
+          "start_date",
+          "end_date",
+          "destination",
+          "party_size",
+          "current_revision_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TripResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
