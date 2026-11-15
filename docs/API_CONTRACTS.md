@@ -123,7 +123,10 @@ The backend `get_current_user` FastAPI dependency enforces:
 - `PATCH /api/v1/trips/{trip_id}/days/{day_id}/activities/{activity_id}` -> `ApiResponseEnvelope<ActivityResponse>` (Update activity details)
 - `DELETE /api/v1/trips/{trip_id}/days/{day_id}/activities/{activity_id}` -> `ApiResponseEnvelope<{ success: boolean; id: string }>` (Delete activity)
 
-### 5.5 Agents
+### 5.5 Weather & Grounding
+- `GET /api/v1/weather/forecast` -> `ApiResponseEnvelope<DailyWeatherForecast[]>` (Real-time forecast from Open-Meteo with clothing recommendations)
+
+### 5.6 Agents
 - `POST /api/v1/agents` -> `ApiResponseEnvelope<AgentExecutionResponse>`
 - `GET /api/v1/agents/runs/{run_id}/stream` -> SSE Event Stream
 

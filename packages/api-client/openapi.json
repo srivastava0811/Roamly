@@ -889,6 +889,94 @@
         }
       }
     },
+    "/api/v1/weather/forecast": {
+      "get": {
+        "tags": [
+          "Weather"
+        ],
+        "summary": "Get Destination Weather",
+        "operationId": "get_destination_weather_api_v1_weather_forecast_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90.0,
+              "minimum": -90.0,
+              "description": "Destination latitude",
+              "title": "Latitude"
+            },
+            "description": "Destination latitude"
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180.0,
+              "minimum": -180.0,
+              "description": "Destination longitude",
+              "title": "Longitude"
+            },
+            "description": "Destination longitude"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Trip start date (YYYY-MM-DD)",
+              "title": "Start Date"
+            },
+            "description": "Trip start date (YYYY-MM-DD)"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Trip end date (YYYY-MM-DD)",
+              "title": "End Date"
+            },
+            "description": "Trip end date (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_List_DailyWeatherForecast__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/agents": {
       "get": {
         "tags": [
@@ -1458,6 +1546,25 @@
         ],
         "title": "ApiResponseEnvelope[List[ActivityResponse]]"
       },
+      "ApiResponseEnvelope_List_DailyWeatherForecast__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DailyWeatherForecast"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[List[DailyWeatherForecast]]"
+      },
       "ApiResponseEnvelope_List_Dict_str__Any___": {
         "properties": {
           "data": {
@@ -1636,6 +1743,53 @@
           "longitude"
         ],
         "title": "CoordinatesSchema"
+      },
+      "DailyWeatherForecast": {
+        "properties": {
+          "forecast_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Forecast Date"
+          },
+          "temp_max_celsius": {
+            "type": "number",
+            "title": "Temp Max Celsius"
+          },
+          "temp_min_celsius": {
+            "type": "number",
+            "title": "Temp Min Celsius"
+          },
+          "weather_condition": {
+            "type": "string",
+            "title": "Weather Condition"
+          },
+          "precipitation_probability": {
+            "type": "integer",
+            "title": "Precipitation Probability"
+          },
+          "uv_index": {
+            "type": "number",
+            "title": "Uv Index"
+          },
+          "clothing_recommendations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Clothing Recommendations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forecast_date",
+          "temp_max_celsius",
+          "temp_min_celsius",
+          "weather_condition",
+          "precipitation_probability",
+          "uv_index",
+          "clothing_recommendations"
+        ],
+        "title": "DailyWeatherForecast"
       },
       "DestinationSchema": {
         "properties": {

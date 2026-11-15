@@ -85,6 +85,23 @@ export interface UpdateActivityRequest {
   provenance_metadata?: Record<string, unknown>;
 }
 
+export interface WeatherForecast {
+  forecast_date: string;
+  temp_max_celsius: number;
+  temp_min_celsius: number;
+  weather_condition: string;
+  precipitation_probability: number;
+  uv_index: number;
+  clothing_recommendations: string[];
+}
+
+export interface WeatherForecastParams {
+  latitude: number;
+  longitude: number;
+  start_date: string;
+  end_date: string;
+}
+
 export interface MutationResult {
   success: boolean;
   id: string;
@@ -308,6 +325,22 @@ export class RoamlyApiClient {
         method: 'DELETE',
       }
     );
+  }
+
+  // -----------------------------------------------------------
+  // Weather
+  // -----------------------------------------------------------
+
+  public async getWeatherForecast(
+    params: WeatherForecastParams
+  ): Promise<ApiResponseEnvelope<WeatherForecast[]>> {
+    const query = new URLSearchParams({
+      latitude: params.latitude.toString(),
+      longitude: params.longitude.toString(),
+      start_date: params.start_date,
+      end_date: params.end_date,
+    });
+    return this.request<ApiResponseEnvelope<WeatherForecast[]>>(`/api/v1/weather/forecast?${query.toString()}`);
   }
 
   // -----------------------------------------------------------
