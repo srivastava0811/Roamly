@@ -1,8 +1,13 @@
 import {
   HealthResponse,
   Trip,
+  ItineraryDay,
+  Activity,
+  BudgetBreakdown,
   AgentEvent,
   ApiResponseEnvelope,
+  Money,
+  Coordinates,
 } from '@roamly/shared-types';
 import { ApiClientError, NetworkError, UnauthorizedError } from './errors';
 
@@ -15,13 +20,74 @@ export interface ApiClientConfig {
 export interface CreateTripRequest {
   title: string;
   description?: string;
-  startDate: string;
-  endDate: string;
-  destinationCity: string;
-  destinationCountry: string;
-  partySize: number;
+  start_date: string;
+  end_date: string;
+  destination_city: string;
+  destination_country: string;
+  party_size?: number;
   currency?: string;
-  totalBudget?: number;
+  total_budget?: number;
+}
+
+export interface UpdateTripRequest {
+  title?: string;
+  description?: string;
+  start_date?: string;
+  end_date?: string;
+  party_size?: number;
+  total_budget?: number;
+}
+
+export interface CreateItineraryDayRequest {
+  day_number: number;
+  date: string;
+  theme_title?: string;
+  weather_summary?: Record<string, unknown>;
+}
+
+export interface UpdateItineraryDayRequest {
+  theme_title?: string;
+  date?: string;
+  weather_summary?: Record<string, unknown>;
+}
+
+export interface CreateActivityRequest {
+  name: string;
+  category?: string;
+  description?: string;
+  start_time?: string;
+  end_time?: string;
+  duration_minutes?: number;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  estimated_cost?: Money;
+  booking_required?: boolean;
+  booking_url?: string;
+  order_index?: number;
+  provenance_metadata?: Record<string, unknown>;
+}
+
+export interface UpdateActivityRequest {
+  name?: string;
+  category?: string;
+  description?: string;
+  start_time?: string;
+  end_time?: string;
+  duration_minutes?: number;
+  location_name?: string;
+  latitude?: number;
+  longitude?: number;
+  estimated_cost?: Money;
+  booking_required?: boolean;
+  booking_url?: string;
+  order_index?: number;
+  provenance_metadata?: Record<string, unknown>;
+}
+
+export interface MutationResult {
+  success: boolean;
+  id: string;
 }
 
 export class RoamlyApiClient {
@@ -73,7 +139,9 @@ export class RoamlyApiClient {
       }
 
       const message =
-        typeof errorBody === 'object' && errorBody !== null && 'detail' in errorBody
+        typeof errorBody === 'object' && errorBody !== null && 'error' in errorBody
+          ? String((errorBody as { error: { message?: string } }).error?.message || response.statusText)
+          : typeof errorBody === 'object' && errorBody !== null && 'detail' in errorBody
           ? String((errorBody as { detail: unknown }).detail)
           : `HTTP Error ${response.status}: ${response.statusText}`;
 
@@ -83,30 +151,26 @@ export class RoamlyApiClient {
     return (await response.json()) as T;
   }
 
-  /**
-   * Health check endpoint
-   */
+  // -----------------------------------------------------------
+  // Health
+  // -----------------------------------------------------------
+
   public async getHealth(): Promise<HealthResponse> {
     return this.request<HealthResponse>('/health');
   }
 
-  /**
-   * Get all trips accessible to current user
-   */
+  // -----------------------------------------------------------
+  // Trips
+  // -----------------------------------------------------------
+
   public async getTrips(): Promise<ApiResponseEnvelope<Trip[]>> {
     return this.request<ApiResponseEnvelope<Trip[]>>('/api/v1/trips');
   }
 
-  /**
-   * Get specific trip details by ID
-   */
   public async getTripById(id: string): Promise<ApiResponseEnvelope<Trip>> {
     return this.request<ApiResponseEnvelope<Trip>>(`/api/v1/trips/${encodeURIComponent(id)}`);
   }
 
-  /**
-   * Create a new draft trip
-   */
   public async createTrip(data: CreateTripRequest): Promise<ApiResponseEnvelope<Trip>> {
     return this.request<ApiResponseEnvelope<Trip>>('/api/v1/trips', {
       method: 'POST',
@@ -114,9 +178,142 @@ export class RoamlyApiClient {
     });
   }
 
-  /**
-   * Subscribe to Server-Sent Events for agent execution progress
-   */
+  public async updateTrip(id: string, data: UpdateTripRequest): Promise<ApiResponseEnvelope<Trip>> {
+    return this.request<ApiResponseEnvelope<Trip>>(`/api/v1/trips/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async deleteTrip(id: string): Promise<ApiResponseEnvelope<MutationResult>> {
+    return this.request<ApiResponseEnvelope<MutationResult>>(`/api/v1/trips/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  public async getTripBudget(tripId: string): Promise<ApiResponseEnvelope<BudgetBreakdown>> {
+    return this.request<ApiResponseEnvelope<BudgetBreakdown>>(`/api/v1/trips/${encodeURIComponent(tripId)}/budget`);
+  }
+
+  // -----------------------------------------------------------
+  // Itinerary Days
+  // -----------------------------------------------------------
+
+  public async getItineraryDays(tripId: string): Promise<ApiResponseEnvelope<ItineraryDay[]>> {
+    return this.request<ApiResponseEnvelope<ItineraryDay[]>>(`/api/v1/trips/${encodeURIComponent(tripId)}/days`);
+  }
+
+  public async getItineraryDay(tripId: string, dayId: string): Promise<ApiResponseEnvelope<ItineraryDay>> {
+    return this.request<ApiResponseEnvelope<ItineraryDay>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}`
+    );
+  }
+
+  public async createItineraryDay(
+    tripId: string,
+    data: CreateItineraryDayRequest
+  ): Promise<ApiResponseEnvelope<ItineraryDay>> {
+    return this.request<ApiResponseEnvelope<ItineraryDay>>(`/api/v1/trips/${encodeURIComponent(tripId)}/days`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  public async updateItineraryDay(
+    tripId: string,
+    dayId: string,
+    data: UpdateItineraryDayRequest
+  ): Promise<ApiResponseEnvelope<ItineraryDay>> {
+    return this.request<ApiResponseEnvelope<ItineraryDay>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  public async deleteItineraryDay(tripId: string, dayId: string): Promise<ApiResponseEnvelope<MutationResult>> {
+    return this.request<ApiResponseEnvelope<MutationResult>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}`,
+      {
+        method: 'DELETE',
+      }
+    );
+  }
+
+  // -----------------------------------------------------------
+  // Activities
+  // -----------------------------------------------------------
+
+  public async getActivities(tripId: string, dayId: string): Promise<ApiResponseEnvelope<Activity[]>> {
+    return this.request<ApiResponseEnvelope<Activity[]>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}/activities`
+    );
+  }
+
+  public async getActivity(
+    tripId: string,
+    dayId: string,
+    activityId: string
+  ): Promise<ApiResponseEnvelope<Activity>> {
+    return this.request<ApiResponseEnvelope<Activity>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}/activities/${encodeURIComponent(
+        activityId
+      )}`
+    );
+  }
+
+  public async createActivity(
+    tripId: string,
+    dayId: string,
+    data: CreateActivityRequest
+  ): Promise<ApiResponseEnvelope<Activity>> {
+    return this.request<ApiResponseEnvelope<Activity>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}/activities`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  public async updateActivity(
+    tripId: string,
+    dayId: string,
+    activityId: string,
+    data: UpdateActivityRequest
+  ): Promise<ApiResponseEnvelope<Activity>> {
+    return this.request<ApiResponseEnvelope<Activity>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}/activities/${encodeURIComponent(
+        activityId
+      )}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  public async deleteActivity(
+    tripId: string,
+    dayId: string,
+    activityId: string
+  ): Promise<ApiResponseEnvelope<MutationResult>> {
+    return this.request<ApiResponseEnvelope<MutationResult>>(
+      `/api/v1/trips/${encodeURIComponent(tripId)}/days/${encodeURIComponent(dayId)}/activities/${encodeURIComponent(
+        activityId
+      )}`,
+      {
+        method: 'DELETE',
+      }
+    );
+  }
+
+  // -----------------------------------------------------------
+  // Realtime Streaming
+  // -----------------------------------------------------------
+
   public streamAgentRun(
     runId: string,
     onEvent: (event: AgentEvent) => void,
@@ -124,8 +321,6 @@ export class RoamlyApiClient {
   ): () => void {
     const url = `${this.baseUrl}/api/v1/agents/runs/${encodeURIComponent(runId)}/stream`;
     
-    // In Node or React Native environments where EventSource may require polyfills,
-    // this can use fetch reader or standard EventSource in browser.
     if (typeof EventSource !== 'undefined') {
       const eventSource = new EventSource(url);
       eventSource.onmessage = (event) => {
@@ -144,7 +339,6 @@ export class RoamlyApiClient {
       };
     }
 
-    // Fallback for non-browser environments: return no-op cleanup
     return () => {};
   }
 }

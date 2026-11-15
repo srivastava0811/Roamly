@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
     supabase_anon_key: str = Field(default="", alias="SUPABASE_ANON_KEY")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
+    supabase_jwt_secret: str = Field(default="", alias="SUPABASE_JWT_SECRET")
+    jwt_audience: str = Field(default="authenticated", alias="JWT_AUDIENCE")
+    jwt_algorithms: List[str] = Field(default=["HS256", "RS256", "ES256"], alias="JWT_ALGORITHMS")
+    jwt_verify_exp: bool = Field(default=True, alias="JWT_VERIFY_EXP")
+    jwt_verify_iss: bool = Field(default=True, alias="JWT_VERIFY_ISS")
 
     provider_mode: str = Field(default="mock", alias="PROVIDER_MODE")
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")

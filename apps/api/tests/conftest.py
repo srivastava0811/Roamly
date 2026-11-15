@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.main import app
 from app.db.base import Base
 from app.db.session import get_db
+from app.core.security import create_test_token
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -38,3 +39,15 @@ async def client(test_session: AsyncSession):
         yield ac
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def auth_headers():
+    token = create_test_token(user_id="user-default-1", email="traveler@example.com")
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def other_user_headers():
+    token = create_test_token(user_id="user-other-2", email="other@example.com")
+    return {"Authorization": f"Bearer {token}"}

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.models.trip import Trip, Destination
+from app.models.itinerary import ItineraryDay
 from app.repositories.base import BaseRepository
 
 
@@ -16,7 +17,7 @@ class TripRepository(BaseRepository[Trip]):
             .where(Trip.id == trip_id)
             .options(
                 selectinload(Trip.destination),
-                selectinload(Trip.itinerary_days),
+                selectinload(Trip.itinerary_days).selectinload(ItineraryDay.activities),
                 selectinload(Trip.revisions),
             )
         )

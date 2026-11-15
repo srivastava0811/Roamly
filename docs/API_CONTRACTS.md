@@ -1,6 +1,6 @@
 # API Contracts & Client Generation Policy
 
-> **Authoritative Specification**: FastAPI OpenAPI (`apps/api/openapi.json`)
+> **Authoritative Specification**: FastAPI OpenAPI (`packages/api-client/openapi.json`)
 > **Target Consumer Libraries**: `@roamly/api-client` (TypeScript)
 > **API Version**: `v1`
 
@@ -26,7 +26,7 @@ The FastAPI backend is the sole authoritative definition of all public API endpo
 - Base URL: `https://api.roamly.com` (Production) or `http://localhost:8000` (Local Dev)
 - Versioning Scheme: URI Path Prefix (`/api/v1/`)
 - Root Non-Versioned Endpoints:
-  - `GET /health`: Operational health check. Returns service status for API and Database. Must never require a configured production database.
+  - `GET /health`: Operational health check. Returns service status for API and Database. Must never require authentication or a configured production database.
   - `GET /docs`: Interactive Swagger UI (disabled in strict production).
   - `GET /redoc`: Interactive ReDoc documentation.
   - `GET /openapi.json`: Raw OpenAPI 3.1 specification.
@@ -50,12 +50,12 @@ export interface ApiResponseEnvelope<T> {
 ```
 
 ### 3.2 Error Envelope
-When an error occurs, whether 400, 401, 404, 422, or 500, the API returns a structured error object:
+When an error occurs, whether 400, 401, 403, 404, 422, or 500, the API returns a structured error object:
 
 ```typescript
 export interface ApiErrorEnvelope {
   error: {
-    code: string;       // e.g. "VALIDATION_ERROR", "NOT_FOUND", "QUOTA_EXCEEDED"
+    code: string;       // e.g. "VALIDATION_ERROR", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN"
     message: string;    // Human-readable summary
     details?: Record<string, unknown>;
   };
@@ -66,17 +66,70 @@ Standard Error Codes:
 | HTTP Status | Code String | Meaning |
 |---|---|---|
 | `400 Bad Request` | `BAD_REQUEST` | Malformed JSON or invalid parameter syntax |
-| `401 Unauthorized` | `UNAUTHORIZED` | Missing or invalid Supabase JWT |
-| `403 Forbidden` | `FORBIDDEN` | Insufficient permissions for trip or group |
-| `404 Not Found` | `NOT_FOUND` | Entity with specified ID does not exist |
-| `422 Unprocessable`| `VALIDATION_ERROR`| Pydantic validation failure (e.g. end date before start date) |
+| `401 Unauthorized` | `UNAUTHORIZED` | Missing, expired, or invalid Supabase Bearer JWT (includes `WWW-Authenticate: Bearer` header) |
+| `403 Forbidden` | `FORBIDDEN` | Insufficient permissions for trip or group resource |
+| `404 Not Found` | `NOT_FOUND` | Entity with specified ID does not exist, or cross-trip access violation |
+| `422 Unprocessable`| `VALIDATION_ERROR`| Pydantic validation failure (e.g. end date before start date, activity time inverted) |
 | `429 Too Many Req` | `QUOTA_EXCEEDED` | Upstream provider or AI token rate limit hit |
 | `500 Server Error` | `INTERNAL_ERROR` | Unhandled exception (masked in production) |
 | `502 Bad Gateway`  | `PROVIDER_ERROR` | External flight/hotel provider failure with retryable flag |
 
 ---
 
-## 4. Client Generation & Reproduction Workflow
+## 4. Authentication & Resource Authorization
+
+All `/api/v1/*` routes (except explicit public endpoints) require a Supabase-issued JSON Web Token passed in the standard authorization header:
+
+```http
+Authorization: Bearer <supabase_access_token>
+```
+
+### 4.1 Validation Protocol
+The backend `get_current_user` FastAPI dependency enforces:
+1. **Header Presence**: Missing header yields `401 Unauthorized` with `WWW-Authenticate: Bearer error="invalid_token"`.
+2. **Cryptographic Signature Verification**:
+   - Asymmetric signatures (RS256, ES256) are validated against Supabase's JWKS endpoint (`{SUPABASE_URL}/auth/v1/.well-known/jwks.json`).
+   - Symmetric signatures (HS256) are validated against `SUPABASE_JWT_SECRET`.
+3. **Claims Validation**: Verifies expiration (`exp`), audience (`aud == "authenticated"`), and presence of the subject (`sub`).
+4. **Auto-Provisioning**: On first successful authentication, if the user does not exist in local database, a user record is automatically created using JWT metadata.
+5. **Ownership Check**: Resource-level authorization requires `trip.creator_id == current_user.id`. Violations immediately raise `403 Forbidden`.
+
+---
+
+## 5. Endpoints Reference
+
+### 5.1 Health Check
+- `GET /health` -> `HealthResponse` (Public)
+
+### 5.2 Trips
+- `POST /api/v1/trips` -> `ApiResponseEnvelope<TripResponse>` (Create draft trip)
+- `GET /api/v1/trips` -> `ApiResponseEnvelope<TripResponse[]>` (List current user's trips)
+- `GET /api/v1/trips/{trip_id}` -> `ApiResponseEnvelope<TripResponse>` (Get trip details)
+- `PATCH /api/v1/trips/{trip_id}` -> `ApiResponseEnvelope<TripResponse>` (Update trip details)
+- `DELETE /api/v1/trips/{trip_id}` -> `ApiResponseEnvelope<{ success: boolean; id: string }>` (Delete trip)
+- `GET /api/v1/trips/{trip_id}/budget` -> `ApiResponseEnvelope<BudgetBreakdownSchema>` (Calculates category allocation and estimated spend aggregated from activities)
+
+### 5.3 Itinerary Days
+- `POST /api/v1/trips/{trip_id}/days` -> `ApiResponseEnvelope<ItineraryDayResponse>` (Create itinerary day within trip date bounds)
+- `GET /api/v1/trips/{trip_id}/days` -> `ApiResponseEnvelope<ItineraryDayResponse[]>` (List itinerary days ordered by `day_number`)
+- `GET /api/v1/trips/{trip_id}/days/{day_id}` -> `ApiResponseEnvelope<ItineraryDayResponse>` (Get day details with nested activities and daily cost)
+- `PATCH /api/v1/trips/{trip_id}/days/{day_id}` -> `ApiResponseEnvelope<ItineraryDayResponse>` (Update day title, date, or weather)
+- `DELETE /api/v1/trips/{trip_id}/days/{day_id}` -> `ApiResponseEnvelope<{ success: boolean; id: string }>` (Delete day and cascade activities)
+
+### 5.4 Activities
+- `POST /api/v1/trips/{trip_id}/days/{day_id}/activities` -> `ApiResponseEnvelope<ActivityResponse>` (Create activity)
+- `GET /api/v1/trips/{trip_id}/days/{day_id}/activities` -> `ApiResponseEnvelope<ActivityResponse[]>` (List activities ordered by `order_index`)
+- `GET /api/v1/trips/{trip_id}/days/{day_id}/activities/{activity_id}` -> `ApiResponseEnvelope<ActivityResponse>` (Get activity details)
+- `PATCH /api/v1/trips/{trip_id}/days/{day_id}/activities/{activity_id}` -> `ApiResponseEnvelope<ActivityResponse>` (Update activity details)
+- `DELETE /api/v1/trips/{trip_id}/days/{day_id}/activities/{activity_id}` -> `ApiResponseEnvelope<{ success: boolean; id: string }>` (Delete activity)
+
+### 5.5 Agents
+- `POST /api/v1/agents` -> `ApiResponseEnvelope<AgentExecutionResponse>`
+- `GET /api/v1/agents/runs/{run_id}/stream` -> SSE Event Stream
+
+---
+
+## 6. Client Generation & Reproduction Workflow
 
 The TypeScript API client in `packages/api-client` is generated from the OpenAPI contract.
 

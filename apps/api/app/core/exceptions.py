@@ -31,6 +31,26 @@ class ValidationException(RoamlyException):
         )
 
 
+class AuthenticationException(RoamlyException):
+    def __init__(self, message: str = "Authentication required or token invalid.", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="UNAUTHORIZED",
+            status_code=401,
+            details=details,
+        )
+
+
+class ForbiddenException(RoamlyException):
+    def __init__(self, message: str = "You do not have permission to access this resource.", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="FORBIDDEN",
+            status_code=403,
+            details=details,
+        )
+
+
 class ProviderException(RoamlyException):
     def __init__(self, provider: str, message: str, retryable: bool = False):
         super().__init__(

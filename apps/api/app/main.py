@@ -52,8 +52,13 @@ app.add_middleware(
 
 @app.exception_handler(RoamlyException)
 async def roamly_exception_handler(request: Request, exc: RoamlyException):
+    headers = {}
+    if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+        headers["WWW-Authenticate"] = "Bearer"
+
     return JSONResponse(
         status_code=exc.status_code,
+        headers=headers,
         content={
             "error": {
                 "code": exc.code,
