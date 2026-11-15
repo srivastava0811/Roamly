@@ -4,11 +4,18 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.core.logging import logger
 
+engine_connect_args = {}
+if "postgresql" in settings.database_url:
+    # Supabase / PgBouncer transaction pooler compatibility
+    engine_connect_args["statement_cache_size"] = 0
+    engine_connect_args["prepared_statement_cache_size"] = 0
+
 # Async engine configured from settings
 engine = create_async_engine(
     settings.database_url,
     echo=(settings.roamly_env == "development"),
     future=True,
+    connect_args=engine_connect_args,
 )
 
 async_session_factory = async_sessionmaker(

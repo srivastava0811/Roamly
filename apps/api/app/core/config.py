@@ -49,6 +49,7 @@ class Settings(BaseSettings):
 
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
     supabase_anon_key: str = Field(default="", alias="SUPABASE_ANON_KEY")
+    supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
 
     provider_mode: str = Field(default="mock", alias="PROVIDER_MODE")
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
