@@ -15,7 +15,12 @@ from .itinerary import (
     ItineraryDayResponse,
 )
 from .budget import BudgetBreakdownSchema, CategoryBudgetSchema
-from .agent import AgentRunSchema, AgentEventSchema
+from .agent import (
+    AgentRunSchema,
+    AgentEventSchema,
+    TripPlanRequest,
+    TripPlanGenerationResponse,
+)
 
 __all__ = [
     "ApiResponseEnvelope",
@@ -37,4 +42,6 @@ __all__ = [
     "CategoryBudgetSchema",
     "AgentRunSchema",
     "AgentEventSchema",
+    "TripPlanRequest",
+    "TripPlanGenerationResponse",
 ]

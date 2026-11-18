@@ -5,6 +5,7 @@ import {
   Activity,
   BudgetBreakdown,
   AgentEvent,
+  AgentRun,
   ApiResponseEnvelope,
   Money,
   Coordinates,
@@ -100,6 +101,21 @@ export interface WeatherForecastParams {
   longitude: number;
   start_date: string;
   end_date: string;
+}
+
+export interface TripPlanRequest {
+  preferences?: Record<string, unknown>;
+  run_id?: string;
+}
+
+export interface TripPlanGenerationResponse {
+  run_id: string;
+  trip_id: string;
+  status: string;
+  model_identifier?: string;
+  itinerary_days: ItineraryDay[];
+  budget_breakdown: BudgetBreakdown;
+  packing_list: string[];
 }
 
 export interface MutationResult {
@@ -344,8 +360,31 @@ export class RoamlyApiClient {
   }
 
   // -----------------------------------------------------------
-  // Realtime Streaming
+  // AI Travel Agents & Realtime Streaming
   // -----------------------------------------------------------
+
+  public async generateTripPlan(
+    tripId: string,
+    data: TripPlanRequest = {}
+  ): Promise<ApiResponseEnvelope<TripPlanGenerationResponse>> {
+    return this.request<ApiResponseEnvelope<TripPlanGenerationResponse>>(
+      `/api/v1/agents/trips/${encodeURIComponent(tripId)}/plan`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
+  }
+
+  public async getAgentRun(runId: string): Promise<ApiResponseEnvelope<AgentRun>> {
+    return this.request<ApiResponseEnvelope<AgentRun>>(`/api/v1/agents/runs/${encodeURIComponent(runId)}`);
+  }
+
+  public async getAgentRunEvents(runId: string): Promise<ApiResponseEnvelope<AgentEvent[]>> {
+    return this.request<ApiResponseEnvelope<AgentEvent[]>>(
+      `/api/v1/agents/runs/${encodeURIComponent(runId)}/events`
+    );
+  }
 
   public streamAgentRun(
     runId: string,

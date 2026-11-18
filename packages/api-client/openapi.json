@@ -998,6 +998,165 @@
         }
       }
     },
+    "/api/v1/agents/trips/{trip_id}/plan": {
+      "post": {
+        "tags": [
+          "Agents"
+        ],
+        "summary": "Generate Trip Plan",
+        "description": "Executes the AI Travel Planning workflow for a trip and persists the generated itinerary.",
+        "operationId": "generate_trip_plan_api_v1_agents_trips__trip_id__plan_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/TripPlanRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_TripPlanGenerationResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "Agents"
+        ],
+        "summary": "Get Agent Run",
+        "operationId": "get_agent_run_api_v1_agents_runs__run_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_AgentRunSchema_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/runs/{run_id}/events": {
+      "get": {
+        "tags": [
+          "Agents"
+        ],
+        "summary": "Get Agent Run Events",
+        "operationId": "get_agent_run_events_api_v1_agents_runs__run_id__events_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseEnvelope_List_AgentEventSchema__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/agents/runs/{run_id}/stream": {
       "get": {
         "tags": [
@@ -1465,6 +1624,175 @@
         "type": "object",
         "title": "ActivityUpdateRequest"
       },
+      "AgentEventSchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "agent_role": {
+            "type": "string",
+            "title": "Agent Role"
+          },
+          "step_number": {
+            "type": "integer",
+            "title": "Step Number"
+          },
+          "stage_name": {
+            "type": "string",
+            "title": "Stage Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "run_id",
+          "agent_role",
+          "step_number",
+          "stage_name",
+          "status",
+          "message",
+          "timestamp"
+        ],
+        "title": "AgentEventSchema"
+      },
+      "AgentRunSchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "trip_id": {
+            "type": "string",
+            "title": "Trip Id"
+          },
+          "orchestrator_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orchestrator Run Id"
+          },
+          "agent_role": {
+            "type": "string",
+            "title": "Agent Role"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "input_payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input Payload"
+          },
+          "output_payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Payload"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "execution_duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Duration Ms"
+          },
+          "model_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Identifier"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "trip_id",
+          "agent_role",
+          "status",
+          "input_payload",
+          "started_at"
+        ],
+        "title": "AgentRunSchema"
+      },
       "ApiResponseEnvelope_ActivityResponse_": {
         "properties": {
           "data": {
@@ -1479,6 +1807,21 @@
           "data"
         ],
         "title": "ApiResponseEnvelope[ActivityResponse]"
+      },
+      "ApiResponseEnvelope_AgentRunSchema_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AgentRunSchema"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[AgentRunSchema]"
       },
       "ApiResponseEnvelope_BudgetBreakdownSchema_": {
         "properties": {
@@ -1545,6 +1888,25 @@
           "data"
         ],
         "title": "ApiResponseEnvelope[List[ActivityResponse]]"
+      },
+      "ApiResponseEnvelope_List_AgentEventSchema__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AgentEventSchema"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[List[AgentEventSchema]]"
       },
       "ApiResponseEnvelope_List_DailyWeatherForecast__": {
         "properties": {
@@ -1622,6 +1984,21 @@
           "data"
         ],
         "title": "ApiResponseEnvelope[List[TripResponse]]"
+      },
+      "ApiResponseEnvelope_TripPlanGenerationResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TripPlanGenerationResponse"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaSchema"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponseEnvelope[TripPlanGenerationResponse]"
       },
       "ApiResponseEnvelope_TripResponse_": {
         "properties": {
@@ -2189,6 +2566,81 @@
           "destination_country"
         ],
         "title": "TripCreateRequest"
+      },
+      "TripPlanGenerationResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "trip_id": {
+            "type": "string",
+            "title": "Trip Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "model_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Identifier"
+          },
+          "itinerary_days": {
+            "items": {
+              "$ref": "#/components/schemas/ItineraryDayResponse"
+            },
+            "type": "array",
+            "title": "Itinerary Days"
+          },
+          "budget_breakdown": {
+            "$ref": "#/components/schemas/BudgetBreakdownSchema"
+          },
+          "packing_list": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Packing List"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "trip_id",
+          "status",
+          "itinerary_days",
+          "budget_breakdown"
+        ],
+        "title": "TripPlanGenerationResponse"
+      },
+      "TripPlanRequest": {
+        "properties": {
+          "preferences": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Preferences"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "title": "TripPlanRequest"
       },
       "TripResponse": {
         "properties": {

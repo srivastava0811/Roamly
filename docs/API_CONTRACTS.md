@@ -127,8 +127,11 @@ The backend `get_current_user` FastAPI dependency enforces:
 - `GET /api/v1/weather/forecast` -> `ApiResponseEnvelope<DailyWeatherForecast[]>` (Real-time forecast from Open-Meteo with clothing recommendations)
 
 ### 5.6 Agents
-- `POST /api/v1/agents` -> `ApiResponseEnvelope<AgentExecutionResponse>`
-- `GET /api/v1/agents/runs/{run_id}/stream` -> SSE Event Stream
+- `GET /api/v1/agents` -> `ApiResponseEnvelope<List<AgentMetadata>>` (List registered multi-agent roles)
+- `POST /api/v1/agents/trips/{trip_id}/plan` -> `ApiResponseEnvelope<TripPlanGenerationResponse>` (Executes weather grounding + AI itinerary synthesis + deterministic budget recalculation + DB persistence)
+- `GET /api/v1/agents/runs/{run_id}` -> `ApiResponseEnvelope<AgentRunSchema>` (Get persisted execution status and output metadata for a planning run)
+- `GET /api/v1/agents/runs/{run_id}/events` -> `ApiResponseEnvelope<AgentEventSchema[]>` (List ordered execution audit events for a run)
+- `GET /api/v1/agents/runs/{run_id}/stream` -> SSE Event Stream (`text/event-stream`)
 
 ---
 
