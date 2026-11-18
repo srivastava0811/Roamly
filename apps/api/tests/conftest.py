@@ -5,7 +5,10 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.main import app
 from app.db.base import Base
 from app.db.session import get_db
+from app.core.config import settings
 from app.core.security import create_test_token
+
+settings.roamly_env = "test"
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 

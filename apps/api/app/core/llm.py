@@ -13,7 +13,7 @@ class GeminiClient:
     GEMINI_API_KEY is not configured or when running in mock/test mode.
     """
 
-    MODEL_NAME = "gemini-2.5-flash"
+    MODEL_NAME = "gemini-3.5-flash-lite"
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
     async def generate_structured_itinerary(
@@ -57,11 +57,14 @@ class GeminiClient:
                 logger.warning("Gemini returned no candidates; using fallback itinerary.")
                 return self._fallback_itinerary(context), False, "deterministic-fallback"
 
-            raw_text = (
-                candidates[0]
-                .get("content", {})
-                .get("parts", [{}])[0]
-                .get("text", "{}")
+            parts = candidates[0].get("content", {}).get("parts", [])
+            raw_text = next(
+                (
+                    part.get("text", "{}")
+                    for part in reversed(parts)
+                    if not part.get("thought") and part.get("text")
+                ),
+                "{}",
             )
             parsed = json.loads(raw_text)
             days = parsed.get("days", parsed if isinstance(parsed, list) else [])
